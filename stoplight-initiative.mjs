@@ -59,12 +59,126 @@ export class StoplightTrackerUI extends Application {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // Toggle tracker visibility
-    html.find('.toggle-tracker').click(() => {
-      this.close();
+    // Drag and drop functionality
+    this._setupDragAndDrop(html);
+  }
+
+  /**
+   * Set up drag and drop event listeners
+   */
+  _setupDragAndDrop(html) {
+    // Make combatant entries draggable
+    html.find('.combatant-entry').each((i, el) => {
+      const $el = $(el);
+      const combatantId = $el.data('combatant-id');
+
+      // Check if this combatant is in the red zone (not draggable)
+      if ($el.closest('.zone-red').length > 0) {
+        $el.attr('draggable', 'false');
+        return;
+      }
+
+      $el.on('dragstart', (event) => {
+        event.originalEvent.dataTransfer.setData('text/plain', combatantId);
+        $el.addClass('dragging');
+
+        // Check permissions
+        if (!this._canDragCombatant(combatantId)) {
+          event.preventDefault();
+          ui.notifications.warn("You can only move your own character!");
+          return false;
+        }
+      });
+
+      $el.on('dragend', (event) => {
+        $el.removeClass('dragging');
+      });
     });
 
-    // Drag and drop listeners will be added in Phase 4
+    // Set up drop zones (green and yellow only)
+    html.find('[data-drop-zone]').each((i, el) => {
+      const $dropZone = $(el);
+      const targetZone = $dropZone.data('drop-zone');
+
+      $dropZone.on('dragover', (event) => {
+        event.preventDefault();
+        $dropZone.addClass('drag-over');
+      });
+
+      $dropZone.on('dragleave', (event) => {
+        $dropZone.removeClass('drag-over');
+      });
+
+      $dropZone.on('drop', async (event) => {
+        event.preventDefault();
+        $dropZone.removeClass('drag-over');
+
+        const combatantId = event.originalEvent.dataTransfer.getData('text/plain');
+        if (combatantId) {
+          await this._moveCombatantToZone(combatantId, targetZone);
+        }
+      });
+    });
+  }
+
+  /**
+   * Check if the current user can drag a combatant
+   */
+  _canDragCombatant(combatantId) {
+    // GMs can move anyone
+    if (game.user.isGM) return true;
+
+    // Find the combatant
+    const combat = game.combat;
+    if (!combat) return false;
+
+    const combatant = combat.combatants.get(combatantId);
+    if (!combatant) return false;
+
+    // Players can only move their own characters
+    const actor = combatant.actor;
+    if (!actor) return false;
+
+    return actor.isOwner;
+  }
+
+  /**
+   * Move a combatant to a different zone
+   */
+  async _moveCombatantToZone(combatantId, targetZone) {
+    // Can't move to red zone (that's automatic)
+    if (targetZone === 'red') return;
+
+    // Find the combatant in current zones
+    let combatant = null;
+    let sourceZone = null;
+
+    for (const zone of ['green', 'yellow', 'red']) {
+      const found = this.trackerData[zone].find(c => c.id === combatantId);
+      if (found) {
+        combatant = found;
+        sourceZone = zone;
+        break;
+      }
+    }
+
+    if (!combatant || sourceZone === targetZone) return;
+
+    // Remove from source zone
+    this.trackerData[sourceZone] = this.trackerData[sourceZone].filter(c => c.id !== combatantId);
+
+    // Add to target zone
+    this.trackerData[targetZone].push(combatant);
+
+    // Re-render and save
+    this.render(false);
+
+    const combat = game.combat;
+    if (combat) {
+      await this.saveState(combat);
+    }
+
+    console.log(`${MODULE_ID} | Moved ${combatant.name} from ${sourceZone} to ${targetZone}`);
   }
 
   /**
