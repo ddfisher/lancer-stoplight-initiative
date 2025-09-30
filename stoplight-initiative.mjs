@@ -157,39 +157,25 @@ export class StoplightTrackerUI extends Application {
    * Move a combatant to a different zone
    */
   async _moveCombatantToZone(combatantId, targetZone) {
-    // Can't move to red zone (that's automatic)
+    // Can't move to red zone (that's automatic based on activations)
     if (targetZone === 'red') return;
 
-    // Find the combatant in current zones
-    let combatant = null;
-    let sourceZone = null;
-
-    for (const zone of ['green', 'yellow', 'red']) {
-      const found = this.trackerData[zone].find(c => c.id === combatantId);
-      if (found) {
-        combatant = found;
-        sourceZone = zone;
-        break;
-      }
-    }
-
-    if (!combatant || sourceZone === targetZone) return;
-
-    // Remove from source zone
-    this.trackerData[sourceZone] = this.trackerData[sourceZone].filter(c => c.id !== combatantId);
-
-    // Add to target zone
-    this.trackerData[targetZone].push(combatant);
-
-    // Re-render and save
-    this.render(false);
-
     const combat = game.combat;
-    if (combat) {
-      await this.saveState(combat);
+    if (!combat) return;
+
+    const combatant = combat.combatants.get(combatantId);
+    if (!combatant) return;
+
+    // Set or unset the wantsToGo flag based on target zone
+    if (targetZone === 'green') {
+      await combatant.setFlag(MODULE_ID, 'wantsToGo', true);
+      console.log(`${MODULE_ID} | ${combatant.name} wants to go (moved to green)`);
+    } else if (targetZone === 'yellow') {
+      await combatant.unsetFlag(MODULE_ID, 'wantsToGo');
+      console.log(`${MODULE_ID} | ${combatant.name} moved to yellow (cleared want to go)`);
     }
 
-    console.log(`${MODULE_ID} | Moved ${combatant.name} from ${sourceZone} to ${targetZone}`);
+    // Re-render will happen automatically via updateCombatant hook
   }
 
   /**
@@ -202,7 +188,7 @@ export class StoplightTrackerUI extends Application {
 
   /**
    * Populate tracker from combat encounter
-   * Loads state from combat flags if available, otherwise puts everyone in yellow
+   * Reads state from combatant flags and activations
    */
   populateFromCombat(combat) {
     if (!combat) {
@@ -212,141 +198,54 @@ export class StoplightTrackerUI extends Application {
     }
 
     console.log(`${MODULE_ID} | Populating from combat:`, combat);
-    console.log(`${MODULE_ID} | Combatants collection:`, combat.combatants);
-    console.log(`${MODULE_ID} | Combatants size:`, combat.combatants.size);
 
-    // Get all combatants and convert to our format
-    // In Foundry v12, combatants is a Collection
-    // Only include combatants with FRIENDLY disposition
-    const combatants = Array.from(combat.combatants)
-      .filter(c => {
-        // Check token disposition - only include FRIENDLY (value 1)
-        const disposition = c.token?.disposition ?? c.actor?.prototypeToken?.disposition;
-        return disposition === CONST.TOKEN_DISPOSITIONS.FRIENDLY;
-      })
-      .map(c => ({
+    // Get all friendly combatants and sort them into zones
+    const green = [];
+    const yellow = [];
+    const red = [];
+
+    Array.from(combat.combatants).forEach(c => {
+      // Check token disposition - only include FRIENDLY (value 1)
+      const disposition = c.token?.disposition ?? c.actor?.prototypeToken?.disposition;
+      if (disposition !== CONST.TOKEN_DISPOSITIONS.FRIENDLY) {
+        return;
+      }
+
+      // Convert to our display format
+      const combatantData = {
         id: c.id,
         name: c.name,
         img: c.img || c.actor?.img || 'icons/svg/mystery-man.svg',
         actorId: c.actorId,
         tokenId: c.tokenId
-      }));
-
-    console.log(`${MODULE_ID} | Processed combatants (friendly only):`, combatants);
-
-    // Try to load saved state from combat flags
-    const savedState = combat.getFlag(MODULE_ID, 'trackerState');
-
-    if (savedState) {
-      // Restore saved state, but ensure all combatants are accounted for
-      this.trackerData = this._mergeCombatantsWithState(combatants, savedState);
-    } else {
-      // Start everyone in yellow (neutral) state
-      this.trackerData = {
-        green: [],
-        yellow: combatants,
-        red: []
       };
-    }
+
+      // Check activations (Lancer-specific)
+      const activations = c.activations || { value: 1, max: 1 };
+
+      if (activations.value === 0) {
+        // Red zone - no activations left
+        red.push(combatantData);
+      } else if (c.getFlag(MODULE_ID, 'wantsToGo')) {
+        // Green zone - wants to go and has activations
+        green.push(combatantData);
+      } else {
+        // Yellow zone - has activations, doesn't want to go (default)
+        yellow.push(combatantData);
+      }
+    });
+
+    this.trackerData = { green, yellow, red };
+
+    console.log(`${MODULE_ID} | Sorted into zones:`, {
+      green: green.length,
+      yellow: yellow.length,
+      red: red.length
+    });
 
     this.render(false);
   }
 
-  /**
-   * Merge current combatants with saved state
-   * Handles cases where combatants were added/removed mid-combat
-   */
-  _mergeCombatantsWithState(combatants, savedState) {
-    const result = { green: [], yellow: [], red: [] };
-    const combatantIds = new Set(combatants.map(c => c.id));
-
-    // Restore combatants that still exist in the combat
-    ['green', 'yellow', 'red'].forEach(zone => {
-      if (savedState[zone]) {
-        savedState[zone].forEach(saved => {
-          if (combatantIds.has(saved.id)) {
-            const current = combatants.find(c => c.id === saved.id);
-            result[zone].push(current);
-            combatantIds.delete(saved.id);
-          }
-        });
-      }
-    });
-
-    // Add any new combatants to yellow zone
-    combatantIds.forEach(id => {
-      const combatant = combatants.find(c => c.id === id);
-      if (combatant) {
-        result.yellow.push(combatant);
-      }
-    });
-
-    return result;
-  }
-
-  /**
-   * Save tracker state to combat flags
-   */
-  async saveState(combat) {
-    if (!combat) return;
-
-    await combat.setFlag(MODULE_ID, 'trackerState', {
-      green: this.trackerData.green,
-      yellow: this.trackerData.yellow,
-      red: this.trackerData.red
-    });
-  }
-
-  /**
-   * Reset all combatants to yellow zone (start of new round)
-   */
-  async resetForNewRound(combat) {
-    const allCombatants = [
-      ...this.trackerData.green,
-      ...this.trackerData.yellow,
-      ...this.trackerData.red
-    ];
-
-    this.trackerData = {
-      green: [],
-      yellow: allCombatants,
-      red: []
-    };
-
-    this.render(false);
-
-    // Save state to combat flags
-    if (combat) {
-      await this.saveState(combat);
-    }
-  }
-
-  /**
-   * Move a combatant to the red zone (after their turn)
-   */
-  async moveCombatantToRed(combatantId, combat) {
-    // Find the combatant in green or yellow
-    let combatant = this.trackerData.green.find(c => c.id === combatantId);
-    if (combatant) {
-      this.trackerData.green = this.trackerData.green.filter(c => c.id !== combatantId);
-    } else {
-      combatant = this.trackerData.yellow.find(c => c.id === combatantId);
-      if (combatant) {
-        this.trackerData.yellow = this.trackerData.yellow.filter(c => c.id !== combatantId);
-      }
-    }
-
-    // Add to red if found
-    if (combatant && !this.trackerData.red.find(c => c.id === combatantId)) {
-      this.trackerData.red.push(combatant);
-      this.render(false);
-
-      // Save state to combat flags
-      if (combat) {
-        await this.saveState(combat);
-      }
-    }
-  }
 }
 
 /**
@@ -381,36 +280,8 @@ Hooks.once('ready', async function() {
 });
 
 /**
- * Handle combat round changes
- * Reset all combatants to yellow at the start of each new round
- */
-Hooks.on('combatRound', async function(combat, updateData, updateOptions) {
-  if (!tracker) return;
-
-  console.log(`${MODULE_ID} | New round started: ${updateData.round}`);
-
-  // Reset all combatants to yellow zone
-  await tracker.resetForNewRound(combat);
-});
-
-/**
- * Handle combat turn changes
- * Move the combatant whose turn is ending to the red zone
- */
-Hooks.on('combatTurn', async function(combat, updateData, updateOptions) {
-  if (!tracker) return;
-
-  // Get the combatant whose turn is ending (current turn before the update)
-  const endingCombatant = combat.turns[combat.turn];
-
-  if (endingCombatant) {
-    console.log(`${MODULE_ID} | Turn ending for: ${endingCombatant.name}`);
-    await tracker.moveCombatantToRed(endingCombatant.id, combat);
-  }
-});
-
-/**
- * Handle combat updates (start, end, etc.)
+ * Handle combat updates (turn changes, round changes, etc.)
+ * Re-read state from combat and combatant flags
  */
 Hooks.on('updateCombat', async function(combat, changed, options, userId) {
   if (!tracker) return;
@@ -428,10 +299,11 @@ Hooks.on('updateCombat', async function(combat, changed, options, userId) {
     console.log(`${MODULE_ID} | Combat ended`);
     tracker.close();
   }
-  // Turn or round changed - re-render to update current turn indicator
-  else if (changed.turn !== undefined || changed.round !== undefined) {
-    console.log(`${MODULE_ID} | Turn or round changed, updating indicator`);
-    tracker.render(false);
+  // Any other change (turn, round, etc.) - re-populate from combat
+  // This catches activation changes from Lancer and turn/round changes
+  else if (tracker.rendered) {
+    console.log(`${MODULE_ID} | Combat state changed, re-populating tracker`);
+    tracker.populateFromCombat(combat);
   }
 });
 
@@ -475,4 +347,21 @@ Hooks.on('deleteCombatant', async function(combatant, options, userId) {
   // Refresh the tracker with updated combatants
   tracker.populateFromCombat(combat);
   tracker.render(false);
+});
+
+/**
+ * Handle combatant updates (flags, activations, etc.)
+ * This enables synchronization across clients when someone drags
+ */
+Hooks.on('updateCombatant', async function(combatant, changed, options, userId) {
+  if (!tracker || !tracker.rendered) return;
+
+  const combat = game.combat;
+  if (!combat) return;
+
+  // Check if our wantsToGo flag changed, or if activations changed
+  if (changed.flags?.['stoplight-initiative'] !== undefined || changed.activations !== undefined) {
+    console.log(`${MODULE_ID} | Combatant ${combatant.name} updated, re-populating tracker`);
+    tracker.populateFromCombat(combat);
+  }
 });
