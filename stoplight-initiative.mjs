@@ -421,8 +421,10 @@ Hooks.on('updateCombatant', async function(combatant, changed, options, userId) 
   const combat = game.combat;
   if (!combat) return;
 
-  // Check if our wantsToGo flag changed, or if activations changed
-  if (changed.flags?.['stoplight-initiative'] !== undefined || changed.activations !== undefined) {
+  // Check if our wantsToGo flag changed, or if Lancer activations changed
+  const activationsChanged = changed.flags?.lancer?.activations !== undefined;
+
+  if (changed.flags?.['stoplight-initiative'] !== undefined || activationsChanged) {
     console.log(`${MODULE_ID} | Combatant ${combatant.name} updated, re-populating tracker`);
     tracker.populateFromCombat(combat);
   }
