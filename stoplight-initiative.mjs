@@ -23,6 +23,9 @@ export class StoplightTrackerUI extends Application {
       yellow: [],  // Players in neutral state
       red: []      // Players who have already acted
     };
+
+    // Track minimized state
+    this.isMinimized = false;
   }
 
   /**
@@ -33,7 +36,7 @@ export class StoplightTrackerUI extends Application {
       id: 'stoplight-tracker',
       title: 'Stoplight Initiative',
       template: 'modules/stoplight-initiative/templates/stoplight-initiative.hbs',
-      width: 1048,
+      width: 1024,
       height: 160,
       resizable: false,
       minimizable: false,
@@ -63,8 +66,20 @@ export class StoplightTrackerUI extends Application {
     return {
       green: markCurrent(this.trackerData.green),
       yellow: markCurrent(this.trackerData.yellow),
-      red: markCurrent(this.trackerData.red)
+      red: markCurrent(this.trackerData.red),
+      isMinimized: this.isMinimized
     };
+  }
+
+  /**
+   * Called after render to restore minimized state
+   */
+  _injectHTML(html) {
+    const result = super._injectHTML(html);
+    if (this.isMinimized) {
+      this.element.find('.stoplight-tracker').addClass('minimized');
+    }
+    return result;
   }
 
   /**
@@ -89,6 +104,24 @@ export class StoplightTrackerUI extends Application {
     if (dragHandle) {
       dragHandle.addEventListener('mousedown', this._onCustomDragStart.bind(this));
     }
+
+    // Toggle visibility
+    html.find('.toggle-visibility').on('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.isMinimized = !this.isMinimized;
+      const tracker = html.hasClass('stoplight-tracker') ? html : html.find('.stoplight-tracker');
+      tracker.toggleClass('minimized', this.isMinimized);
+
+      // Resize window based on minimized state
+      if (this.isMinimized) {
+        this.setPosition({ width: 20, height: 'auto' });
+      } else {
+        this.setPosition({ width: 1024, height: 160 });
+      }
+
+      console.log(`${MODULE_ID} | Toggled minimized state:`, this.isMinimized);
+    });
 
     // Drag and drop functionality for combatants
     this._setupDragAndDrop(html);

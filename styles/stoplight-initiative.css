@@ -25,6 +25,12 @@
   padding: 10px;
 }
 
+.stoplight-tracker .tracker-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .stoplight-tracker .drag-handle {
   font-size: 1.2em;
   color: #666;
@@ -32,9 +38,34 @@
   padding: 4px;
   background-color: #d0d0d0;
   border-radius: 4px;
-  align-self: stretch;
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.stoplight-tracker .toggle-visibility {
+  font-size: 1em;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  background-color: #d0d0d0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.stoplight-tracker .toggle-visibility:hover {
+  background-color: #bbb;
+}
+
+.stoplight-tracker.minimized .tracker-zones {
+  display: none;
+}
+
+.stoplight-tracker.minimized .toggle-visibility:before {
+  content: "\f054";
 }
 
 .stoplight-tracker .tracker-zones {
@@ -92,8 +123,7 @@
   padding: 8px;
   min-height: 100px;
   max-height: 100px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   display: flex;
   flex-direction: row;
   gap: 8px;
