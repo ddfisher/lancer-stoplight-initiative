@@ -122,18 +122,19 @@ export class StoplightTrackerUI extends Application {
   _onCustomDragStart(event) {
     event.preventDefault();
 
-    const app = this.element[0];
     const initialX = event.clientX;
     const initialY = event.clientY;
-    const initialLeft = app.offsetLeft;
-    const initialTop = app.offsetTop;
+    const initialLeft = this.position.left;
+    const initialTop = this.position.top;
 
     const onMouseMove = (e) => {
       const deltaX = e.clientX - initialX;
       const deltaY = e.clientY - initialY;
 
-      app.style.left = (initialLeft + deltaX) + 'px';
-      app.style.top = (initialTop + deltaY) + 'px';
+      this.setPosition({
+        left: initialLeft + deltaX,
+        top: initialTop + deltaY
+      });
     };
 
     const onMouseUp = () => {
