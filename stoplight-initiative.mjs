@@ -71,16 +71,6 @@ export class StoplightTrackerUI extends Application {
     };
   }
 
-  /**
-   * Called after render to restore minimized state
-   */
-  _injectHTML(html) {
-    const result = super._injectHTML(html);
-    if (this.isMinimized) {
-      this.element.find('.stoplight-tracker').addClass('minimized');
-    }
-    return result;
-  }
 
   /**
    * Handle closing - prevent escape key from closing
@@ -99,6 +89,15 @@ export class StoplightTrackerUI extends Application {
   activateListeners(html) {
     super.activateListeners(html);
 
+    // Restore minimized state on re-render
+    const tracker = html.hasClass('stoplight-tracker') ? html : html.find('.stoplight-tracker');
+    if (this.isMinimized) {
+      tracker.addClass('minimized');
+      setTimeout(() => {
+        this.setPosition({ width: 20, height: 'auto' });
+      }, 0);
+    }
+
     // Make drag handle draggable
     const dragHandle = html.find('.drag-handle')[0];
     if (dragHandle) {
@@ -110,7 +109,6 @@ export class StoplightTrackerUI extends Application {
       event.preventDefault();
       event.stopPropagation();
       this.isMinimized = !this.isMinimized;
-      const tracker = html.hasClass('stoplight-tracker') ? html : html.find('.stoplight-tracker');
       tracker.toggleClass('minimized', this.isMinimized);
 
       // Resize window based on minimized state
