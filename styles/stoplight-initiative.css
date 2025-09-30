@@ -48,8 +48,7 @@
   border-radius: 6px;
   overflow: hidden;
   border: 2px solid;
-  width: fit-content;
-  min-width: 90px;
+  width: 320px;
 }
 
 .stoplight-tracker .zone-green {

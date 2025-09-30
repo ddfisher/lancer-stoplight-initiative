@@ -33,7 +33,7 @@ export class StoplightTrackerUI extends Application {
       id: 'stoplight-tracker',
       title: 'Stoplight Initiative',
       template: 'modules/stoplight-initiative/templates/stoplight-initiative.hbs',
-      width: 'auto',
+      width: 1048,
       height: 160,
       resizable: false,
       minimizable: false,
