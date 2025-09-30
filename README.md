@@ -56,8 +56,12 @@ The tracker displays three colored zones (like a stoplight):
 
 ### Phase 7: Final Features
 1. Allow GMs to double-click on a mech to start their turn.
-2. Allow GMs to drag mechs to and from "already acted" to modify whether or not they've gone this combat round.
-3. There's a lot of excess vertical space that's not being used. Can we make this not a normal window and instead give it a small drag handle to be repositioned?
+2. Allow GMs (and players, if possible) to drag mechs to and from "already acted" to modify whether or not they've gone this combat round.
+
+### Phase 8: Final UI
+1. There's a lot of excess vertical space that's not being used. Can we make this not a normal window and instead give it a small drag handle to be repositioned?
+2. Let's also make it a fixed size again instead of resizable.
+3. Let's model this off of Lancer's action manager.  See https://github.com/Eranziel/foundryvtt-lancer/blob/master/public/templates/window/action_manager.hbs for the template and https://github.com/Eranziel/foundryvtt-lancer/blob/master/src/lancer.scss for the scss (but we should stick with css ourselves).
 
 ## Technical Architecture
 
