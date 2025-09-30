@@ -17,6 +17,9 @@
   border-radius: 6px;
   overflow: hidden;
   border: 2px solid;
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
 }
 
 .stoplight-tracker .zone-green {
@@ -58,7 +61,13 @@
 
 .stoplight-tracker .zone-content {
   padding: 8px;
-  min-height: 50px;
+  min-height: 120px;
+  max-height: 120px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
   transition: background-color 0.2s;
 }
 
@@ -69,23 +78,21 @@
 /* Combatant Entry Styles */
 .stoplight-tracker .combatant-entry {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  margin-bottom: 6px;
+  gap: 4px;
+  padding: 6px;
   background: rgba(0, 0, 0, 0.4);
   border-radius: 4px;
   cursor: grab;
   transition: background-color 0.2s, transform 0.2s;
-}
-
-.stoplight-tracker .combatant-entry:last-child {
-  margin-bottom: 0;
+  flex-shrink: 0;
+  width: 70px;
 }
 
 .stoplight-tracker .combatant-entry:hover {
   background: rgba(0, 0, 0, 0.6);
-  transform: translateX(-2px);
+  transform: translateY(-2px);
 }
 
 .stoplight-tracker .combatant-entry.dragging {
@@ -99,19 +106,21 @@
 }
 
 .stoplight-tracker .combatant-img {
-  width: 32px;
-  height: 32px;
+  width: 50px;
+  height: 50px;
   border-radius: 4px;
-  border: 1px solid #444;
+  border: 2px solid #444;
   object-fit: cover;
 }
 
 .stoplight-tracker .combatant-name {
-  flex: 1;
-  font-size: 13px;
+  font-size: 10px;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  width: 100%;
+  line-height: 1.2;
 }
 
 .stoplight-tracker .zone-empty {
@@ -132,4 +141,16 @@
 .stoplight-tracker .zone-red .combatant-entry:hover {
   background: rgba(0, 0, 0, 0.4);
   transform: none;
+}
+
+/* Current turn indicator */
+.stoplight-tracker .combatant-entry.current-turn {
+  border: 2px solid #ffeb3b;
+  box-shadow: 0 0 10px rgba(255, 235, 59, 0.6);
+  background: rgba(255, 235, 59, 0.2);
+}
+
+.stoplight-tracker .combatant-entry.current-turn .combatant-img {
+  border-color: #ffeb3b;
+  box-shadow: 0 0 8px rgba(255, 235, 59, 0.8);
 }

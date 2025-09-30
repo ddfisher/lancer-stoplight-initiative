@@ -46,10 +46,21 @@ export class StoplightTrackerUI extends Application {
    * Provide data to the Handlebars template
    */
   getData(options = {}) {
+    // Get current combatant ID if there's an active combat
+    const currentCombatantId = game.combat?.combatant?.id;
+
+    // Mark which combatants are current
+    const markCurrent = (combatants) => {
+      return combatants.map(c => ({
+        ...c,
+        isCurrent: c.id === currentCombatantId
+      }));
+    };
+
     return {
-      green: this.trackerData.green,
-      yellow: this.trackerData.yellow,
-      red: this.trackerData.red
+      green: markCurrent(this.trackerData.green),
+      yellow: markCurrent(this.trackerData.yellow),
+      red: markCurrent(this.trackerData.red)
     };
   }
 
@@ -206,15 +217,22 @@ export class StoplightTrackerUI extends Application {
 
     // Get all combatants and convert to our format
     // In Foundry v12, combatants is a Collection
-    const combatants = Array.from(combat.combatants).map(c => ({
-      id: c.id,
-      name: c.name,
-      img: c.img || c.actor?.img || 'icons/svg/mystery-man.svg',
-      actorId: c.actorId,
-      tokenId: c.tokenId
-    }));
+    // Only include combatants with FRIENDLY disposition
+    const combatants = Array.from(combat.combatants)
+      .filter(c => {
+        // Check token disposition - only include FRIENDLY (value 1)
+        const disposition = c.token?.disposition ?? c.actor?.prototypeToken?.disposition;
+        return disposition === CONST.TOKEN_DISPOSITIONS.FRIENDLY;
+      })
+      .map(c => ({
+        id: c.id,
+        name: c.name,
+        img: c.img || c.actor?.img || 'icons/svg/mystery-man.svg',
+        actorId: c.actorId,
+        tokenId: c.tokenId
+      }));
 
-    console.log(`${MODULE_ID} | Processed combatants:`, combatants);
+    console.log(`${MODULE_ID} | Processed combatants (friendly only):`, combatants);
 
     // Try to load saved state from combat flags
     const savedState = combat.getFlag(MODULE_ID, 'trackerState');
