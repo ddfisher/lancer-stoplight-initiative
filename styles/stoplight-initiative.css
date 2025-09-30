@@ -148,11 +148,7 @@
 
 /* Current turn indicator */
 .stoplight-tracker .combatant-entry.current-turn {
-  background: rgba(255, 235, 59, 0.3);
-  box-shadow: 0 0 10px rgba(255, 235, 59, 0.6);
-}
-
-.stoplight-tracker .combatant-entry.current-turn .combatant-img {
-  border: 2px solid #ffeb3b;
-  box-shadow: 0 0 8px rgba(255, 235, 59, 0.8);
+  border: 3px solid #2e7d32;
+  border-radius: 6px;
+  padding: 1px;
 }

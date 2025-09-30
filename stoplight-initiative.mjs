@@ -428,6 +428,11 @@ Hooks.on('updateCombat', async function(combat, changed, options, userId) {
     console.log(`${MODULE_ID} | Combat ended`);
     tracker.close();
   }
+  // Turn or round changed - re-render to update current turn indicator
+  else if (changed.turn !== undefined || changed.round !== undefined) {
+    console.log(`${MODULE_ID} | Turn or round changed, updating indicator`);
+    tracker.render(false);
+  }
 });
 
 /**

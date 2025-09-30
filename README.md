@@ -57,6 +57,7 @@ The tracker displays three colored zones (like a stoplight):
 ### Phase 7: Final Features
 1. Allow GMs to double-click on a mech to start their turn.
 2. Allow GMs to drag mechs to and from "already acted" to modify whether or not they've gone this combat round.
+3. There's a lot of excess vertical space that's not being used. Can we make this not a normal window and instead give it a small drag handle to be repositioned?
 
 ## Technical Architecture
 
