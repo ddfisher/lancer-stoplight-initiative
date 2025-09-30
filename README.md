@@ -45,9 +45,17 @@ The tracker displays three colored zones (like a stoplight):
 
 ### Phase 5: Polish and UX
 1. Implement visual indicators for whose turn it is
-2. Add configuration options (settings menu)
-   - Toggle auto-move to red on turn end
-3. Test with multiple players and game systems
+2. Make the zones a fixed size
+3. Make icons slightly bigger. Make the names slightly smaller and move them to under the icons.
+4. Display combatants left to right instead of vertically.
+5. Re-title "Ready to Go" to "Want to Go"
+6. Only show tokens with "Friendly" disposition in the tracker.
+
+### Phase 6: Synchronization
+1. Discuss a plan for synchronization and fill in this section.
+
+### Phase 7: Final Features
+1. Allow GMs to drag mechs to and from "already acted" to modify whether or not they've gone this combat round.
 
 ## Technical Architecture
 
