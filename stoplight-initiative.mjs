@@ -36,8 +36,8 @@ export class StoplightTrackerUI extends Application {
       id: 'stoplight-tracker',
       title: 'Stoplight Initiative',
       template: 'modules/stoplight-initiative/templates/stoplight-initiative.hbs',
-      width: 1024,
-      height: 160,
+      width: 1000,
+      height: 135,
       resizable: false,
       minimizable: false,
       closeOnEscape: false,
@@ -94,7 +94,7 @@ export class StoplightTrackerUI extends Application {
     if (this.isMinimized) {
       tracker.addClass('minimized');
       setTimeout(() => {
-        this.setPosition({ width: 45, height: 'auto' });
+        this.setPosition({ width: 32, height: 'auto' });
       }, 0);
     }
 
@@ -113,9 +113,9 @@ export class StoplightTrackerUI extends Application {
 
       // Resize window based on minimized state
       if (this.isMinimized) {
-        this.setPosition({ width: 45, height: 'auto' });
+        this.setPosition({ width: 32, height: 'auto' });
       } else {
-        this.setPosition({ width: 1024, height: 160 });
+        this.setPosition({ width: 1000, height: 135 });
       }
 
       console.log(`${MODULE_ID} | Toggled minimized state:`, this.isMinimized);
