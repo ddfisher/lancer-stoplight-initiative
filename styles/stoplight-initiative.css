@@ -1,0 +1,170 @@
+/* Stoplight Initiative Tracker Styles */
+
+.stoplight-tracker {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 280px;
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  font-family: "Signika", sans-serif;
+  color: #fff;
+}
+
+.stoplight-tracker .tracker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid #444;
+  border-radius: 6px 6px 0 0;
+}
+
+.stoplight-tracker .tracker-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.stoplight-tracker .toggle-tracker {
+  cursor: pointer;
+  color: #ccc;
+  transition: color 0.2s;
+}
+
+.stoplight-tracker .toggle-tracker:hover {
+  color: #fff;
+}
+
+.stoplight-tracker .tracker-zones {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Zone Styles */
+.stoplight-tracker .zone {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid;
+}
+
+.stoplight-tracker .zone-green {
+  border-color: #4caf50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.stoplight-tracker .zone-yellow {
+  border-color: #ffc107;
+  background: rgba(255, 193, 7, 0.1);
+}
+
+.stoplight-tracker .zone-red {
+  border-color: #f44336;
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.stoplight-tracker .zone-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-weight: bold;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.stoplight-tracker .zone-green .zone-header i {
+  color: #4caf50;
+}
+
+.stoplight-tracker .zone-yellow .zone-header i {
+  color: #ffc107;
+}
+
+.stoplight-tracker .zone-red .zone-header i {
+  color: #f44336;
+}
+
+.stoplight-tracker .zone-content {
+  padding: 8px;
+  min-height: 50px;
+  transition: background-color 0.2s;
+}
+
+.stoplight-tracker .zone-content.drag-over {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Combatant Entry Styles */
+.stoplight-tracker .combatant-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  cursor: grab;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.stoplight-tracker .combatant-entry:last-child {
+  margin-bottom: 0;
+}
+
+.stoplight-tracker .combatant-entry:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: translateX(-2px);
+}
+
+.stoplight-tracker .combatant-entry.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.stoplight-tracker .combatant-entry.non-draggable {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.stoplight-tracker .combatant-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  object-fit: cover;
+}
+
+.stoplight-tracker .combatant-name {
+  flex: 1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stoplight-tracker .zone-empty {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  font-size: 12px;
+  margin: 0;
+  padding: 8px;
+}
+
+/* Red zone combatants are not draggable */
+.stoplight-tracker .zone-red .combatant-entry {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.stoplight-tracker .zone-red .combatant-entry:hover {
+  background: rgba(0, 0, 0, 0.4);
+  transform: none;
+}

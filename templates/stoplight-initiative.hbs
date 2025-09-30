@@ -1,0 +1,64 @@
+<div class="stoplight-tracker">
+  <header class="tracker-header">
+    <h3>Stoplight Initiative</h3>
+    <a class="toggle-tracker" title="Toggle Tracker">
+      <i class="fas fa-times"></i>
+    </a>
+  </header>
+
+  <div class="tracker-zones">
+    <!-- Green Zone: I want to go next -->
+    <div class="zone zone-green" data-zone="green">
+      <div class="zone-header">
+        <i class="fas fa-circle"></i>
+        <span>Ready to Go</span>
+      </div>
+      <div class="zone-content" data-drop-zone="green">
+        {{#each green}}
+          <div class="combatant-entry" data-combatant-id="{{this.id}}" draggable="true">
+            <img src="{{this.img}}" alt="{{this.name}}" class="combatant-img" />
+            <span class="combatant-name">{{this.name}}</span>
+          </div>
+        {{else}}
+          <p class="zone-empty">No one ready</p>
+        {{/each}}
+      </div>
+    </div>
+
+    <!-- Yellow Zone: Default/neutral state -->
+    <div class="zone zone-yellow" data-zone="yellow">
+      <div class="zone-header">
+        <i class="fas fa-circle"></i>
+        <span>Waiting</span>
+      </div>
+      <div class="zone-content" data-drop-zone="yellow">
+        {{#each yellow}}
+          <div class="combatant-entry" data-combatant-id="{{this.id}}" draggable="true">
+            <img src="{{this.img}}" alt="{{this.name}}" class="combatant-img" />
+            <span class="combatant-name">{{this.name}}</span>
+          </div>
+        {{else}}
+          <p class="zone-empty">No one waiting</p>
+        {{/each}}
+      </div>
+    </div>
+
+    <!-- Red Zone: Already gone this round -->
+    <div class="zone zone-red" data-zone="red">
+      <div class="zone-header">
+        <i class="fas fa-circle"></i>
+        <span>Already Acted</span>
+      </div>
+      <div class="zone-content">
+        {{#each red}}
+          <div class="combatant-entry" data-combatant-id="{{this.id}}">
+            <img src="{{this.img}}" alt="{{this.name}}" class="combatant-img" />
+            <span class="combatant-name">{{this.name}}</span>
+          </div>
+        {{else}}
+          <p class="zone-empty">No one acted yet</p>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+</div>
