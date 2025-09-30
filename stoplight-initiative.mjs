@@ -283,14 +283,16 @@ Hooks.on('combatTurn', async function(combat, updateData, updateOptions) {
 Hooks.on('updateCombat', async function(combat, changed, options, userId) {
   if (!tracker) return;
 
-  // Combat started
-  if (changed.active === true) {
-    console.log(`${MODULE_ID} | Combat started`);
+  console.log(`${MODULE_ID} | Combat updated:`, changed);
+
+  // Combat started (round changed from null/0 to 1 or higher)
+  if (changed.round !== undefined && changed.round >= 1 && !tracker.rendered) {
+    console.log(`${MODULE_ID} | Combat started - round ${changed.round}`);
     tracker.populateFromCombat(combat);
     tracker.render(true);
   }
   // Combat ended
-  else if (changed.active === false) {
+  else if (changed.round === null || changed.active === false) {
     console.log(`${MODULE_ID} | Combat ended`);
     tracker.close();
   }
@@ -304,4 +306,36 @@ Hooks.on('deleteCombat', async function(combat, options, userId) {
 
   console.log(`${MODULE_ID} | Combat deleted`);
   tracker.close();
+});
+
+/**
+ * Handle combatant creation (actor added to combat)
+ */
+Hooks.on('createCombatant', async function(combatant, options, userId) {
+  if (!tracker || !tracker.rendered) return;
+
+  const combat = combatant.combat || game.combat;
+  if (!combat) return;
+
+  console.log(`${MODULE_ID} | Combatant added: ${combatant.name}`);
+
+  // Refresh the tracker with updated combatants
+  tracker.populateFromCombat(combat);
+  tracker.render(false);
+});
+
+/**
+ * Handle combatant deletion (actor removed from combat)
+ */
+Hooks.on('deleteCombatant', async function(combatant, options, userId) {
+  if (!tracker || !tracker.rendered) return;
+
+  const combat = game.combat;
+  if (!combat) return;
+
+  console.log(`${MODULE_ID} | Combatant removed: ${combatant.name}`);
+
+  // Refresh the tracker with updated combatants
+  tracker.populateFromCombat(combat);
+  tracker.render(false);
 });
