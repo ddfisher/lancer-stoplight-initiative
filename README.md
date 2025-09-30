@@ -55,7 +55,8 @@ The tracker displays three colored zones (like a stoplight):
 1. Discuss a plan for synchronization and fill in this section.
 
 ### Phase 7: Final Features
-1. Allow GMs to drag mechs to and from "already acted" to modify whether or not they've gone this combat round.
+1. Allow GMs to double-click on a mech to start their turn.
+2. Allow GMs to drag mechs to and from "already acted" to modify whether or not they've gone this combat round.
 
 ## Technical Architecture
 
