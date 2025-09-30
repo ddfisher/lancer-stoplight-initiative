@@ -94,7 +94,7 @@ export class StoplightTrackerUI extends Application {
     if (this.isMinimized) {
       tracker.addClass('minimized');
       setTimeout(() => {
-        this.setPosition({ width: 20, height: 'auto' });
+        this.setPosition({ width: 45, height: 'auto' });
       }, 0);
     }
 
@@ -113,7 +113,7 @@ export class StoplightTrackerUI extends Application {
 
       // Resize window based on minimized state
       if (this.isMinimized) {
-        this.setPosition({ width: 20, height: 'auto' });
+        this.setPosition({ width: 45, height: 'auto' });
       } else {
         this.setPosition({ width: 1024, height: 160 });
       }

@@ -68,6 +68,10 @@
   content: "\f054";
 }
 
+.stoplight-initiative-app:has(.minimized) {
+  width: 45px !important;
+}
+
 .stoplight-tracker .tracker-zones {
   display: flex;
   flex-direction: row;
