@@ -24,17 +24,17 @@
 
 .stoplight-tracker .zone-green {
   border-color: #4caf50;
-  background: rgba(76, 175, 80, 0.1);
+  background: rgba(76, 175, 80, 0.3);
 }
 
 .stoplight-tracker .zone-yellow {
   border-color: #ffc107;
-  background: rgba(255, 193, 7, 0.1);
+  background: rgba(255, 193, 7, 0.3);
 }
 
 .stoplight-tracker .zone-red {
   border-color: #f44336;
-  background: rgba(244, 67, 54, 0.1);
+  background: rgba(244, 67, 54, 0.3);
 }
 
 .stoplight-tracker .zone-header {
