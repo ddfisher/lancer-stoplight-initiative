@@ -72,6 +72,28 @@ export class StoplightTrackerUI extends Application {
 
     // Drag and drop functionality
     this._setupDragAndDrop(html);
+
+    // Double-click to start turn (GM only)
+    html.find('.combatant-entry').on('dblclick', async (event) => {
+      if (!game.user.isGM) return;
+
+      const combatantId = $(event.currentTarget).data('combatant-id');
+      const combat = game.combat;
+      if (!combat) return;
+
+      console.log(`${MODULE_ID} | GM activating combatant ${combatantId}`);
+
+      // Use Lancer's activateCombatant method if available
+      if (typeof combat.activateCombatant === 'function') {
+        await combat.activateCombatant(combatantId);
+      } else {
+        // Fallback to standard Foundry combat
+        const turnIndex = combat.turns.findIndex(t => t.id === combatantId);
+        if (turnIndex !== -1) {
+          await combat.update({ turn: turnIndex });
+        }
+      }
+    });
   }
 
   /**
@@ -82,12 +104,6 @@ export class StoplightTrackerUI extends Application {
     html.find('.combatant-entry').each((i, el) => {
       const $el = $(el);
       const combatantId = $el.data('combatant-id');
-
-      // Check if this combatant is in the red zone (not draggable)
-      if ($el.closest('.zone-red').length > 0) {
-        $el.attr('draggable', 'false');
-        return;
-      }
 
       $el.on('dragstart', (event) => {
         event.originalEvent.dataTransfer.setData('text/plain', combatantId);
@@ -106,7 +122,7 @@ export class StoplightTrackerUI extends Application {
       });
     });
 
-    // Set up drop zones (green and yellow only)
+    // Set up drop zones (green, yellow, and red)
     html.find('[data-drop-zone]').each((i, el) => {
       const $dropZone = $(el);
       const targetZone = $dropZone.data('drop-zone');
@@ -157,23 +173,63 @@ export class StoplightTrackerUI extends Application {
    * Move a combatant to a different zone
    */
   async _moveCombatantToZone(combatantId, targetZone) {
-    // Can't move to red zone (that's automatic based on activations)
-    if (targetZone === 'red') return;
-
     const combat = game.combat;
     if (!combat) return;
 
     const combatant = combat.combatants.get(combatantId);
     if (!combatant) return;
 
-    // Set or unset the wantsToGo flag based on target zone
-    // wantsToGo stores the round number, so it auto-resets each round
-    if (targetZone === 'green') {
+    const activations = combatant.activations || { value: 1, max: 1 };
+
+    if (targetZone === 'red') {
+      // Moving to red: consume all remaining activations
+      if (activations.value > 0) {
+        if (typeof combatant.modifyCurrentActivations === 'function') {
+          // Use Lancer method
+          await combatant.modifyCurrentActivations(-activations.value);
+        } else {
+          // Fallback
+          await combatant.update({ 'activations.value': 0 });
+        }
+        console.log(`${MODULE_ID} | ${combatant.name} moved to red (activations consumed)`);
+      }
+
+      // Also clear wantsToGo flag
+      await combatant.unsetFlag(MODULE_ID, 'wantsToGo');
+    } else if (targetZone === 'green') {
+      // Moving to green: set wantsToGo flag for this round
       await combatant.setFlag(MODULE_ID, 'wantsToGo', combat.round);
       console.log(`${MODULE_ID} | ${combatant.name} wants to go in round ${combat.round}`);
+
+      // If coming from red (0 activations), restore activations
+      if (activations.value === 0) {
+        const maxActivations = activations.max || 1;
+        if (typeof combatant.modifyCurrentActivations === 'function') {
+          // Use Lancer method
+          await combatant.modifyCurrentActivations(maxActivations);
+        } else {
+          // Fallback
+          await combatant.update({ 'activations.value': maxActivations });
+        }
+        console.log(`${MODULE_ID} | ${combatant.name} activations restored to ${maxActivations}`);
+      }
     } else if (targetZone === 'yellow') {
+      // Moving to yellow: clear wantsToGo flag
       await combatant.unsetFlag(MODULE_ID, 'wantsToGo');
       console.log(`${MODULE_ID} | ${combatant.name} moved to yellow (cleared want to go)`);
+
+      // If coming from red (0 activations), restore activations
+      if (activations.value === 0) {
+        const maxActivations = activations.max || 1;
+        if (typeof combatant.modifyCurrentActivations === 'function') {
+          // Use Lancer method
+          await combatant.modifyCurrentActivations(maxActivations);
+        } else {
+          // Fallback
+          await combatant.update({ 'activations.value': maxActivations });
+        }
+        console.log(`${MODULE_ID} | ${combatant.name} activations restored to ${maxActivations}`);
+      }
     }
 
     // Re-render will happen automatically via updateCombatant hook
