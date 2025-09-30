@@ -76,7 +76,7 @@ export class StoplightTrackerUI extends Application {
 
   /**
    * Populate tracker from combat encounter
-   * For now, just puts everyone in yellow zone
+   * Loads state from combat flags if available, otherwise puts everyone in yellow
    */
   populateFromCombat(combat) {
     if (!combat) {
@@ -85,8 +85,13 @@ export class StoplightTrackerUI extends Application {
       return;
     }
 
+    console.log(`${MODULE_ID} | Populating from combat:`, combat);
+    console.log(`${MODULE_ID} | Combatants collection:`, combat.combatants);
+    console.log(`${MODULE_ID} | Combatants size:`, combat.combatants.size);
+
     // Get all combatants and convert to our format
-    const combatants = combat.combatants.map(c => ({
+    // In Foundry v12, combatants is a Collection
+    const combatants = Array.from(combat.combatants).map(c => ({
       id: c.id,
       name: c.name,
       img: c.img || c.actor?.img || 'icons/svg/mystery-man.svg',
@@ -94,20 +99,75 @@ export class StoplightTrackerUI extends Application {
       tokenId: c.tokenId
     }));
 
-    // Start everyone in yellow (neutral) state
-    this.trackerData = {
-      green: [],
-      yellow: combatants,
-      red: []
-    };
+    console.log(`${MODULE_ID} | Processed combatants:`, combatants);
+
+    // Try to load saved state from combat flags
+    const savedState = combat.getFlag(MODULE_ID, 'trackerState');
+
+    if (savedState) {
+      // Restore saved state, but ensure all combatants are accounted for
+      this.trackerData = this._mergeCombatantsWithState(combatants, savedState);
+    } else {
+      // Start everyone in yellow (neutral) state
+      this.trackerData = {
+        green: [],
+        yellow: combatants,
+        red: []
+      };
+    }
 
     this.render(false);
   }
 
   /**
+   * Merge current combatants with saved state
+   * Handles cases where combatants were added/removed mid-combat
+   */
+  _mergeCombatantsWithState(combatants, savedState) {
+    const result = { green: [], yellow: [], red: [] };
+    const combatantIds = new Set(combatants.map(c => c.id));
+
+    // Restore combatants that still exist in the combat
+    ['green', 'yellow', 'red'].forEach(zone => {
+      if (savedState[zone]) {
+        savedState[zone].forEach(saved => {
+          if (combatantIds.has(saved.id)) {
+            const current = combatants.find(c => c.id === saved.id);
+            result[zone].push(current);
+            combatantIds.delete(saved.id);
+          }
+        });
+      }
+    });
+
+    // Add any new combatants to yellow zone
+    combatantIds.forEach(id => {
+      const combatant = combatants.find(c => c.id === id);
+      if (combatant) {
+        result.yellow.push(combatant);
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Save tracker state to combat flags
+   */
+  async saveState(combat) {
+    if (!combat) return;
+
+    await combat.setFlag(MODULE_ID, 'trackerState', {
+      green: this.trackerData.green,
+      yellow: this.trackerData.yellow,
+      red: this.trackerData.red
+    });
+  }
+
+  /**
    * Reset all combatants to yellow zone (start of new round)
    */
-  resetForNewRound() {
+  async resetForNewRound(combat) {
     const allCombatants = [
       ...this.trackerData.green,
       ...this.trackerData.yellow,
@@ -121,12 +181,17 @@ export class StoplightTrackerUI extends Application {
     };
 
     this.render(false);
+
+    // Save state to combat flags
+    if (combat) {
+      await this.saveState(combat);
+    }
   }
 
   /**
    * Move a combatant to the red zone (after their turn)
    */
-  moveCombatantToRed(combatantId) {
+  async moveCombatantToRed(combatantId, combat) {
     // Find the combatant in green or yellow
     let combatant = this.trackerData.green.find(c => c.id === combatantId);
     if (combatant) {
@@ -142,6 +207,11 @@ export class StoplightTrackerUI extends Application {
     if (combatant && !this.trackerData.red.find(c => c.id === combatantId)) {
       this.trackerData.red.push(combatant);
       this.render(false);
+
+      // Save state to combat flags
+      if (combat) {
+        await this.saveState(combat);
+      }
     }
   }
 }
@@ -175,4 +245,77 @@ Hooks.once('ready', async function() {
   game.modules.get(MODULE_ID).tracker = tracker;
 
   console.log(`${MODULE_ID} | Tracker UI initialized`);
+});
+
+/**
+ * Handle combat round changes
+ * Reset all combatants to yellow at the start of each new round
+ */
+Hooks.on('combatRound', async function(combat, updateData, updateOptions) {
+  if (!tracker) return;
+
+  console.log(`${MODULE_ID} | New round started: ${updateData.round}`);
+
+  // Reset all combatants to yellow zone
+  await tracker.resetForNewRound(combat);
+});
+
+/**
+ * Handle combat turn changes
+ * Move the combatant whose turn just ended to the red zone
+ */
+Hooks.on('combatTurn', async function(combat, updateData, updateOptions) {
+  if (!tracker || !combat.previous) return;
+
+  // Get the combatant whose turn just ended
+  const previousCombatant = combat.turns[combat.previous.turn];
+
+  if (previousCombatant) {
+    console.log(`${MODULE_ID} | Turn ended for: ${previousCombatant.name}`);
+    await tracker.moveCombatantToRed(previousCombatant.id, combat);
+  }
+});
+
+/**
+ * Handle combat updates (start, end, etc.)
+ */
+Hooks.on('updateCombat', async function(combat, changed, options, userId) {
+  if (!tracker) return;
+
+  // Combat started
+  if (changed.active === true) {
+    console.log(`${MODULE_ID} | Combat started`);
+    tracker.populateFromCombat(combat);
+    tracker.render(true);
+  }
+  // Combat ended
+  else if (changed.active === false) {
+    console.log(`${MODULE_ID} | Combat ended`);
+    tracker.close();
+  }
+});
+
+/**
+ * Handle combat deletion
+ */
+Hooks.on('deleteCombat', async function(combat, options, userId) {
+  if (!tracker) return;
+
+  console.log(`${MODULE_ID} | Combat deleted`);
+  tracker.close();
+});
+
+/**
+ * Handle combat creation
+ */
+Hooks.on('createCombat', async function(combat, options, userId) {
+  if (!tracker) return;
+
+  console.log(`${MODULE_ID} | Combat created`);
+
+  // Only populate if this is the active combat
+  if (game.combat?.id === combat.id) {
+    tracker.populateFromCombat(combat);
+    tracker.render(true);
+  }
 });
