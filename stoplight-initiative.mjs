@@ -33,8 +33,8 @@ export class StoplightTrackerUI extends Application {
       id: 'stoplight-tracker',
       title: 'Stoplight Initiative',
       template: 'modules/stoplight-initiative/templates/stoplight-initiative.hbs',
-      width: 950,
-      height: 180,
+      width: 'auto',
+      height: 160,
       resizable: false,
       minimizable: false,
       closeOnEscape: false,
@@ -84,10 +84,10 @@ export class StoplightTrackerUI extends Application {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // Make custom header draggable
-    const header = html.find('.tracker-header-bar')[0];
-    if (header) {
-      header.addEventListener('mousedown', this._onCustomDragStart.bind(this));
+    // Make drag handle draggable
+    const dragHandle = html.find('.drag-handle')[0];
+    if (dragHandle) {
+      dragHandle.addEventListener('mousedown', this._onCustomDragStart.bind(this));
     }
 
     // Drag and drop functionality for combatants

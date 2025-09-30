@@ -19,35 +19,25 @@
   color: #333;
   background-color: #eaeaea;
   display: flex;
-  flex-direction: column;
-}
-
-/* Header bar with drag handle */
-.stoplight-tracker .tracker-header-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  background-color: #d0d0d0;
-  border-bottom: 1px solid #5d5d5d;
-  cursor: move;
-  user-select: none;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px;
 }
 
 .stoplight-tracker .drag-handle {
   font-size: 1.2em;
   color: #666;
-}
-
-.stoplight-tracker .tracker-title {
-  font-weight: bold;
-  font-size: 13px;
-  font-style: italic;
-  color: #333;
+  cursor: move;
+  padding: 4px;
+  background-color: #d0d0d0;
+  border-radius: 4px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
 }
 
 .stoplight-tracker .tracker-zones {
-  padding: 10px;
   display: flex;
   flex-direction: row;
   gap: 10px;
@@ -58,9 +48,8 @@
   border-radius: 6px;
   overflow: hidden;
   border: 2px solid;
-  flex: 1;
-  min-width: 200px;
-  max-width: 300px;
+  width: fit-content;
+  min-width: 90px;
 }
 
 .stoplight-tracker .zone-green {
