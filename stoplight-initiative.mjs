@@ -167,9 +167,10 @@ export class StoplightTrackerUI extends Application {
     if (!combatant) return;
 
     // Set or unset the wantsToGo flag based on target zone
+    // wantsToGo stores the round number, so it auto-resets each round
     if (targetZone === 'green') {
-      await combatant.setFlag(MODULE_ID, 'wantsToGo', true);
-      console.log(`${MODULE_ID} | ${combatant.name} wants to go (moved to green)`);
+      await combatant.setFlag(MODULE_ID, 'wantsToGo', combat.round);
+      console.log(`${MODULE_ID} | ${combatant.name} wants to go in round ${combat.round}`);
     } else if (targetZone === 'yellow') {
       await combatant.unsetFlag(MODULE_ID, 'wantsToGo');
       console.log(`${MODULE_ID} | ${combatant.name} moved to yellow (cleared want to go)`);
@@ -203,6 +204,8 @@ export class StoplightTrackerUI extends Application {
     const green = [];
     const yellow = [];
     const red = [];
+    const currentRound = combat.round;
+    const currentCombatantId = combat.combatant?.id;
 
     Array.from(combat.combatants).forEach(c => {
       // Check token disposition - only include FRIENDLY (value 1)
@@ -222,22 +225,25 @@ export class StoplightTrackerUI extends Application {
 
       // Check activations (Lancer-specific)
       const activations = c.activations || { value: 1, max: 1 };
+      const isCurrentTurn = c.id === currentCombatantId;
 
-      if (activations.value === 0) {
-        // Red zone - no activations left
+      // Red zone: no activations left AND it's not currently their turn
+      if (activations.value === 0 && !isCurrentTurn) {
         red.push(combatantData);
-      } else if (c.getFlag(MODULE_ID, 'wantsToGo')) {
-        // Green zone - wants to go and has activations
+      }
+      // Green zone: wants to go this round (flag equals current round number)
+      else if (c.getFlag(MODULE_ID, 'wantsToGo') === currentRound) {
         green.push(combatantData);
-      } else {
-        // Yellow zone - has activations, doesn't want to go (default)
+      }
+      // Yellow zone: default (has activations or is current turn, but doesn't want to go)
+      else {
         yellow.push(combatantData);
       }
     });
 
     this.trackerData = { green, yellow, red };
 
-    console.log(`${MODULE_ID} | Sorted into zones:`, {
+    console.log(`${MODULE_ID} | Sorted into zones (round ${currentRound}):`, {
       green: green.length,
       yellow: yellow.length,
       red: red.length
