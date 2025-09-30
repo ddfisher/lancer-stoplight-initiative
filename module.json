@@ -21,7 +21,7 @@
   "authors": [
     {
       "name": "Day",
-      "url": "https://github.com/",
+      "url": "https://github.com/ddfisher",
       "discord": "ardent_light"
     }
   ],
@@ -52,10 +52,10 @@
     }
   },
   "socket": true,
-  "url": "https://github.com/annoyedb/lancer-alternative-sheets",
-  "manifest": "https://github.com/annoyedb/lancer-alternative-sheets/releases/latest/download/module.json",
-  "download": "https://github.com/annoyedb/lancer-alternative-sheets/releases/latest/download/module.zip",
-  "readme": "https://github.com/annoyedb/lancer-alternative-sheets/blob/master/README.md",
-  "changelog": "https://github.com/annoyedb/lancer-alternative-sheets/blob/master/CHANGELOG.md",
-  "bugs": "https://github.com/annoyedb/lancer-alternative-sheets/issues"
+  "url": "https://github.com/ddfisher/lancer-stoplight-initiative",
+  "manifest": "https://github.com/ddfisher/lancer-stoplight-initiative/releases/latest/download/module.json",
+  "download": "https://github.com/ddfisher/lancer-stoplight-initiative/releases/latest/download/module.zip",
+  "readme": "https://github.com/ddfisher/lancer-stoplight-initiative/blob/master/README.md",
+  "changelog": "https://github.com/ddfisher/lancer-stoplight-initiative/blob/master/CHANGELOG.md",
+  "bugs": "https://github.com/ddfisher/lancer-stoplight-initiative/issues"
 }

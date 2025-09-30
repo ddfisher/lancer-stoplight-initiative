@@ -1,91 +1,106 @@
 # Stoplight Initiative Tracker
 
-A FoundryVTT v12 module that provides an alternative initiative tracker for popcorn-style initiative games.
+A FoundryVTT v12 module that provides an alternative initiative tracker for popcorn-style initiative games. Designed for the Lancer combat system, it integrates with Lancer's activation mechanics while providing an intuitive visual interface for managing turn order.
 
-## Concept
+Vibe coded. Use at your own risk.
 
-The tracker displays three colored zones (like a stoplight):
-- **Green**: "I want to go next" - players drag themselves here to volunteer
-- **Yellow**: "I don't care" - default state for players each round
-- **Red**: "I've already gone" - automatic after a player's turn ends
+## Features
 
-## Implementation Plan
+### Three-Zone Initiative System
+The tracker displays three color-coded zones:
+- **Green (Want to Go)**: Players drag themselves here to volunteer for the next turn
+- **Yellow (Waiting)**: Default state for players who haven't acted and haven't volunteered
+- **Red (Already Acted)**: Automatically populated when players have exhausted their activations
 
-### Phase 1: Module Setup
-1. Create `module.json` manifest with required metadata
-2. Set up basic directory structure (scripts, styles, templates)
-3. Create main module script with hook registration
+### Drag and Drop Interface
+- Players can drag their own combatant between zones
+- GMs can drag any combatant to any zone
+- Dragging to red consumes all remaining activations
+- Dragging from red restores activations
+- Visual feedback during drag operations
 
-### Phase 2: Core UI Development
-1. Create HTML template for the stoplight tracker UI
-   - Three distinct zones (green, yellow, red)
-   - Each zone displays player tokens/names
-2. Style the tracker with CSS
-   - Color-coded zones with visual distinction
-   - Responsive layout that doesn't obstruct gameplay
-3. Implement UI positioning and toggling
-   - Allow GMs and players to show/hide the tracker
-   - Position in a non-intrusive screen location
+### Lancer Integration
+- Reads and modifies Lancer activation states (`activations.value`)
+- Uses `wantsToGo` flags to track green zone volunteers per round
+- GMs can double-click any combatant to activate their turn
+- Automatically resets state each new round
+- Only displays friendly combatants (player characters)
 
-### Phase 3: Initiative Integration
-1. Hook into Foundry's combat tracker
-   - Detect when a combat round starts ’ reset all to yellow
-   - Detect when a turn ends ’ move that player to red
-2. Populate tracker with combatants from active combat
-3. Handle edge cases:
-   - Combat starting/ending
-   - Players joining mid-combat
+### Custom UI
+- Compact, non-intrusive window with custom drag handle
+- Minimizable with toggle button (collapses to just controls)
+- Fixed-size zones that accommodate up to 4 combatants each (scrollable if more)
+- Visual indicator for the currently active combatant (green border)
+- Automatic show/hide based on combat state
 
-### Phase 4: Drag and Drop Functionality
-1. Make player entries draggable within the tracker
-2. Implement drop zones for green and yellow areas
-   - Players can only move themselves (not others)
-   - GMs can move anyone
-3. Add visual feedback during drag operations
+## Usage
 
-### Phase 5: Polish and UX
-1. Implement visual indicators for whose turn it is
-2. Make the zones a fixed size
-3. Make icons slightly bigger. Make the names slightly smaller and move them to under the icons.
-4. Display combatants left to right instead of vertically.
-5. Re-title "Ready to Go" to "Want to Go"
-6. Only show tokens with "Friendly" disposition in the tracker.
+### For Players
+1. When combat starts, the tracker appears automatically
+2. Drag your character to the **green zone** when you want to go next
+3. The GM will typically choose from characters in the green zone
+4. Your character moves to **red** automatically when your turn ends
+5. At the start of each round, all characters reset to yellow
 
-### Phase 6: Synchronization
-1. Discuss a plan for synchronization and fill in this section.
+### For GMs
+1. The tracker opens automatically when you start combat
+2. Choose the next combatant (typically from the green zone)
+3. Double-click any combatant to start their turn
+4. Drag combatants between zones to manually adjust their status
+5. Drag to red to mark as "already acted" (consumes activations)
+6. Drag from red to restore a combatant's activations
+7. Click the minimize button to collapse the tracker when not needed
+8. Use the drag handle to reposition the tracker window
 
-### Phase 7: Final Features
-1. Allow GMs to double-click on a mech to start their turn.
-2. Allow GMs (and players, if possible) to drag mechs to and from "already acted" to modify whether or not they've gone this combat round.
+## Installation
 
-### Phase 8: Final UI
-* There's a lot of excess vertical space that's not being used. Can we make this not a normal window and instead give it a small drag handle to be repositioned?
-* Let's also make it a fixed size again instead of resizable.
-* Let's model this off of Lancer's action manager.  See https://github.com/Eranziel/foundryvtt-lancer/blob/master/public/templates/window/action_manager.hbs for the template and https://github.com/Eranziel/foundryvtt-lancer/blob/master/src/lancer.scss for the scss (but we should stick with css ourselves).
+1. Copy the module folder to your Foundry modules directory
+2. Enable "Stoplight Initiative" in your world's module settings
+3. Requires FoundryVTT v12 and the Lancer system
 
 ## Technical Architecture
 
 ### Key Files
-- `module.json` - Module manifest
-- `scripts/stoplight-initiative.js` - Main module logic
-- `scripts/tracker-ui.js` - UI rendering and interaction
-- `scripts/combat-integration.js` - Combat tracker hooks
-- `templates/tracker.hbs` - Handlebars template for tracker UI
-- `styles/stoplight.css` - Tracker styling
+- `module.json` - Module manifest with FoundryVTT v12 compatibility
+- `stoplight-initiative.mjs` - Main module script containing both UI class and hook logic
+- `templates/stoplight-initiative.hbs` - Handlebars template for tracker UI
+- `styles/stoplight-initiative.css` - All styling for the tracker
 
-### Key Hooks
-- `init` - Register settings and initialize module
-- `ready` - Render UI, set up socket listeners
-- `renderCombatTracker` - Sync with native combat tracker
-- `updateCombat` - Detect round changes
-- `combatTurn` - Detect turn changes and auto-move to red
+### Implementation Details
+
+**StoplightTrackerUI Class** extends Foundry's `Application` class:
+- `populateFromCombat()` - Reads combatant states and sorts into zones
+- `_moveCombatantToZone()` - Handles drag/drop by modifying Lancer activation states
+- `_canDragCombatant()` - Permission checks (players can only drag themselves)
+- Custom drag handle implementation for window repositioning
+- Minimizable state that persists across re-renders
+
+**State Management**:
+- Uses individual combatant flags (`flags.stoplight-initiative.wantsToGo`)
+- Integrates with Lancer activation system (`flags.lancer.activations`)
+- No combat-level state - all state derived from combatant properties
+- `wantsToGo` stores round number (auto-resets each round)
+
+**Synchronization**:
+All state changes are made through Foundry's document update system, which automatically synchronizes across all connected clients via websockets. No custom socket implementation needed.
+
+### Foundry Hooks Used
+- `init` - Module initialization
+- `ready` - Create tracker instance, show if combat active
+- `updateCombat` - Detect combat start/end, round/turn changes
+- `deleteCombat` - Close tracker when combat deleted
+- `createCombatant` - Refresh tracker when combatant added
+- `deleteCombatant` - Refresh tracker when combatant removed
+- `updateCombatant` - Sync when combatant flags or activations change
 
 ### Data Flow
-1. Player drags token between zones ’ triggers update
-2. Update broadcasts via socket to all clients
-3. All clients re-render tracker with new state
-4. State persists in combat flags for page refreshes
+1. User drags combatant to new zone
+2. `_moveCombatantToZone()` updates combatant flags/activations
+3. Foundry's document system broadcasts update to all clients
+4. `updateCombatant` hook fires on all clients
+5. All clients call `populateFromCombat()` and re-render
+6. State persists in combatant documents for page refreshes
 
 ## Development Notes
 
-This is hobby software focused on functionality over robustness. Error handling will be basic but sufficient. No automated tests planned - manual testing during development will ensure core functionality works.
+This is hobby software focused on functionality over robustness. Error handling is basic but sufficient for typical use cases. No automated tests - manual testing during development ensures core functionality works.
