@@ -8,7 +8,7 @@
 .stoplight-tracker .tracker-zones {
   padding: 10px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
 }
 
