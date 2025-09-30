@@ -35,8 +35,9 @@ export class StoplightTrackerUI extends Application {
       template: 'modules/stoplight-initiative/templates/stoplight-initiative.hbs',
       width: 300,
       height: 'auto',
-      resizable: false,
+      resizable: true,
       minimizable: false,
+      closeOnEscape: false,
       classes: ['stoplight-initiative-app']
     });
   }
@@ -262,17 +263,17 @@ Hooks.on('combatRound', async function(combat, updateData, updateOptions) {
 
 /**
  * Handle combat turn changes
- * Move the combatant whose turn just ended to the red zone
+ * Move the combatant whose turn is ending to the red zone
  */
 Hooks.on('combatTurn', async function(combat, updateData, updateOptions) {
-  if (!tracker || !combat.previous) return;
+  if (!tracker) return;
 
-  // Get the combatant whose turn just ended
-  const previousCombatant = combat.turns[combat.previous.turn];
+  // Get the combatant whose turn is ending (current turn before the update)
+  const endingCombatant = combat.turns[combat.turn];
 
-  if (previousCombatant) {
-    console.log(`${MODULE_ID} | Turn ended for: ${previousCombatant.name}`);
-    await tracker.moveCombatantToRed(previousCombatant.id, combat);
+  if (endingCombatant) {
+    console.log(`${MODULE_ID} | Turn ending for: ${endingCombatant.name}`);
+    await tracker.moveCombatantToRed(endingCombatant.id, combat);
   }
 });
 
@@ -303,19 +304,4 @@ Hooks.on('deleteCombat', async function(combat, options, userId) {
 
   console.log(`${MODULE_ID} | Combat deleted`);
   tracker.close();
-});
-
-/**
- * Handle combat creation
- */
-Hooks.on('createCombat', async function(combat, options, userId) {
-  if (!tracker) return;
-
-  console.log(`${MODULE_ID} | Combat created`);
-
-  // Only populate if this is the active combat
-  if (game.combat?.id === combat.id) {
-    tracker.populateFromCombat(combat);
-    tracker.render(true);
-  }
 });
