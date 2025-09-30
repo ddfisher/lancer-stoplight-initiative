@@ -33,12 +33,15 @@ export class StoplightTrackerUI extends Application {
       id: 'stoplight-tracker',
       title: 'Stoplight Initiative',
       template: 'modules/stoplight-initiative/templates/stoplight-initiative.hbs',
-      width: 300,
-      height: 'auto',
-      resizable: true,
+      width: 950,
+      height: 180,
+      resizable: false,
       minimizable: false,
       closeOnEscape: false,
-      classes: ['stoplight-initiative-app']
+      popOut: true,
+      classes: ['stoplight-initiative-app'],
+      top: 80,
+      left: 120
     });
   }
 
@@ -65,12 +68,29 @@ export class StoplightTrackerUI extends Application {
   }
 
   /**
+   * Handle closing - prevent escape key from closing
+   */
+  async close(options={}) {
+    // Only allow closing if explicitly forced
+    if (!options.force) {
+      return;
+    }
+    return super.close(options);
+  }
+
+  /**
    * Activate event listeners after rendering
    */
   activateListeners(html) {
     super.activateListeners(html);
 
-    // Drag and drop functionality
+    // Make custom header draggable
+    const header = html.find('.tracker-header-bar')[0];
+    if (header) {
+      header.addEventListener('mousedown', this._onCustomDragStart.bind(this));
+    }
+
+    // Drag and drop functionality for combatants
     this._setupDragAndDrop(html);
 
     // Double-click to start turn (GM only)
@@ -94,6 +114,35 @@ export class StoplightTrackerUI extends Application {
         }
       }
     });
+  }
+
+  /**
+   * Handle custom drag start for the header
+   */
+  _onCustomDragStart(event) {
+    event.preventDefault();
+
+    const app = this.element[0];
+    const initialX = event.clientX;
+    const initialY = event.clientY;
+    const initialLeft = app.offsetLeft;
+    const initialTop = app.offsetTop;
+
+    const onMouseMove = (e) => {
+      const deltaX = e.clientX - initialX;
+      const deltaY = e.clientY - initialY;
+
+      app.style.left = (initialLeft + deltaX) + 'px';
+      app.style.top = (initialTop + deltaY) + 'px';
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   }
 
   /**

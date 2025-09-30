@@ -1,8 +1,49 @@
 /* Stoplight Initiative Tracker Styles */
 
+/* Hide the Foundry window chrome */
+.stoplight-initiative-app .window-header {
+  display: none;
+}
+
+.stoplight-initiative-app .window-content {
+  padding: 0;
+}
+
+.stoplight-initiative-app {
+  border: 1px solid #5d5d5d;
+  background-color: #eaeaea;
+}
+
 .stoplight-tracker {
   font-family: "Signika", sans-serif;
-  color: #f0f0e0;
+  color: #333;
+  background-color: #eaeaea;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header bar with drag handle */
+.stoplight-tracker .tracker-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background-color: #d0d0d0;
+  border-bottom: 1px solid #5d5d5d;
+  cursor: move;
+  user-select: none;
+}
+
+.stoplight-tracker .drag-handle {
+  font-size: 1.2em;
+  color: #666;
+}
+
+.stoplight-tracker .tracker-title {
+  font-weight: bold;
+  font-size: 13px;
+  font-style: italic;
+  color: #333;
 }
 
 .stoplight-tracker .tracker-zones {
