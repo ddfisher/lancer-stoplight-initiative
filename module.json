@@ -2,7 +2,7 @@
   "id": "stoplight-initiative",
   "title": "Stoplight Initiative",
   "description": "An alternative initiative tracker for popcorn-style initiative games with color-coded player states",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "compatibility": {
     "minimum": "12",
     "verified": "12"
