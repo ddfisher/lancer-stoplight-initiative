@@ -21,7 +21,7 @@
 .stoplight-tracker {
   font-family: "Signika", sans-serif;
   color: #333;
-  background-color: #eaeaea;
+  background-color: rgb(50, 50, 50);
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -87,7 +87,7 @@
   border-radius: 6px;
   overflow: hidden;
   border: 2px solid;
-  width: 320px;
+  width: 304px;
 }
 
 .stoplight-tracker .zone-green {
@@ -109,7 +109,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   font-weight: bold;
   font-size: 13px;
   background: rgba(0, 0, 0, 0.3);
@@ -128,13 +128,13 @@
 }
 
 .stoplight-tracker .zone-content {
-  padding: 8px;
+  padding: 4px;
   min-height: 100px;
   max-height: 100px;
   overflow: hidden;
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 4px;
   transition: background-color 0.2s;
 }
 
@@ -174,32 +174,22 @@
 
 .stoplight-tracker .combatant-img {
   width: 64px;
-  height: 64px;
+  height: 70px;
   border-radius: 4px;
   border: none;
-  object-fit: cover;
+  object-fit: contain;
   pointer-events: none;
 }
 
 .stoplight-tracker .combatant-name {
   font-size: 10px;
   text-align: center;
-  overflow: hidden;
   width: 100%;
   line-height: 1.2;
   word-wrap: break-word;
   overflow-wrap: break-word;
   pointer-events: none;
   color: #000;
-}
-
-.stoplight-tracker .zone-empty {
-  text-align: center;
-  color: #888;
-  font-style: italic;
-  font-size: 12px;
-  margin: 0;
-  padding: 8px;
 }
 
 /* Current turn indicator */
