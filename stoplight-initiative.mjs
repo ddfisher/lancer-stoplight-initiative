@@ -187,15 +187,15 @@ export class StoplightTrackerUI extends Application {
       const combatantId = $el.data('combatant-id');
 
       $el.on('dragstart', (event) => {
-        event.originalEvent.dataTransfer.setData('text/plain', combatantId);
-        $el.addClass('dragging');
-
         // Check permissions
         if (!this._canDragCombatant(combatantId)) {
           event.preventDefault();
           ui.notifications.warn("You can only move your own character!");
           return false;
         }
+
+        event.originalEvent.dataTransfer.setData('text/plain', combatantId);
+        $el.addClass('dragging');
       });
 
       $el.on('dragend', (event) => {
