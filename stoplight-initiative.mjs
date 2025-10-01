@@ -445,7 +445,7 @@ Hooks.on('updateCombat', async function(combat, changed, options, userId) {
   // Combat ended
   else if (changed.round === null || changed.active === false) {
     console.log(`${MODULE_ID} | Combat ended`);
-    tracker.close();
+    tracker.close({force: true});
   }
   // Any other change (turn, round, etc.) - re-populate from combat
   // This catches activation changes from Lancer and turn/round changes
@@ -462,7 +462,7 @@ Hooks.on('deleteCombat', async function(combat, options, userId) {
   if (!tracker) return;
 
   console.log(`${MODULE_ID} | Combat deleted`);
-  tracker.close();
+  tracker.close({force: true});
 });
 
 /**
