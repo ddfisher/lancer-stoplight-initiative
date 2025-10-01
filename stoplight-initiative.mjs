@@ -275,8 +275,11 @@ export class StoplightTrackerUI extends Application {
         console.log(`${MODULE_ID} | ${combatant.name} moved to red (activations consumed)`);
       }
 
-      // Also clear wantsToGo flag
-      await combatant.unsetFlag(MODULE_ID, 'wantsToGo');
+      // End turn if current turn
+      if (typeof combat.deactivateCombatant === 'function') {
+        await combat.deactivateCombatant(combatantId);
+      }
+      await combat.setFlag(MODULE_ID, 'shouldRerender', Date.now());
     } else if (targetZone === 'green') {
       // Moving to green: set wantsToGo flag for this round
       await combatant.setFlag(MODULE_ID, 'wantsToGo', combat.round);
@@ -288,6 +291,7 @@ export class StoplightTrackerUI extends Application {
         if (typeof combatant.modifyCurrentActivations === 'function') {
           // Use Lancer method
           await combatant.modifyCurrentActivations(maxActivations);
+          await combat.setFlag(MODULE_ID, 'shouldRerender', Date.now());
         } else {
           // Fallback
           await combatant.update({ 'activations.value': maxActivations });
@@ -305,6 +309,7 @@ export class StoplightTrackerUI extends Application {
         if (typeof combatant.modifyCurrentActivations === 'function') {
           // Use Lancer method
           await combatant.modifyCurrentActivations(maxActivations);
+          await combat.setFlag(MODULE_ID, 'shouldRerender', Date.now());
         } else {
           // Fallback
           await combatant.update({ 'activations.value': maxActivations });
@@ -502,10 +507,9 @@ Hooks.on('updateCombatant', async function(combatant, changed, options, userId) 
   const combat = game.combat;
   if (!combat) return;
 
-  // Check if our wantsToGo flag changed, or if Lancer activations changed
-  const activationsChanged = changed.flags?.lancer?.activations !== undefined;
+  console.log(changed);
 
-  if (changed.flags?.['stoplight-initiative'] !== undefined || activationsChanged) {
+  if (changed.flags?.['stoplight-initiative'] !== undefined) {
     console.log(`${MODULE_ID} | Combatant ${combatant.name} updated, re-populating tracker`);
     tracker.populateFromCombat(combat);
   }
