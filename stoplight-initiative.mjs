@@ -8,6 +8,21 @@ const MODULE_ID = 'stoplight-initiative';
 // Global tracker instance
 let tracker = null;
 
+function reorderByReference(order, contents) {
+  // Create a Map for fast lookup of contents items by id
+  const contentsMap = new Map(contents.map(item => [item.id, item]));
+  
+  // First, add items from order that exist in contents (by id)
+  const result = order
+    .filter(item => contentsMap.has(item.id))
+    .map(item => contentsMap.get(item.id));
+  
+  // Then, add items from contents that weren't in order
+  const orderIds = new Set(order.map(item => item.id));
+  const remaining = contents.filter(item => !orderIds.has(item.id));
+  
+  return result.concat(remaining);
+}
 
 /**
  * Stoplight Initiative Tracker UI
@@ -383,7 +398,11 @@ export class StoplightTrackerUI extends Application {
       }
     });
 
-    this.trackerData = { green, yellow, red };
+    this.trackerData = {
+      green: reorderByReference(this.trackerData.green, green),
+      yellow: reorderByReference(this.trackerData.yellow, yellow),
+      red: reorderByReference(this.trackerData.red, red),
+    };
 
     console.log(`${MODULE_ID} | Sorted into zones (round ${currentRound}):`, {
       green: green.length,
